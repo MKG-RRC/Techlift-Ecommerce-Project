@@ -1,0 +1,8 @@
+test:
+  adapter: postgresql
+  encoding: unicode
+  database: techlift_test
+  pool: 5
+  username: rails
+  password: password
+  host: localhost

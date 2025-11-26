@@ -1,0 +1,64 @@
+name: Rails CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:14
+        ports:
+          - "5432:5432"
+        env:
+          POSTGRES_USER: rails
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: techlift_test
+        options: >-
+          --health-cmd "pg_isready -U rails"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      RAILS_ENV: test
+      DATABASE_URL: postgres://rails:password@localhost:5432/techlift_test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1
+          bundler-cache: true
+
+      - name: Install Node and Yarn
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Yarn install
+        run: yarn install --frozen-lockfile
+
+      - name: Set up database
+        run: |
+          cp config/database.yml.github config/database.yml
+          bundle exec rails db:create db:schema:load
+
+      - name: Run RuboCop
+        run: bundle exec rubocop --parallel
+
+      - name: Run Rails Tests
+        run: |
+          if [ -d "spec" ]; then
+            bundle exec rspec
+          else
+            bundle exec rails test
+          fi
