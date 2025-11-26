@@ -4,11 +4,12 @@ class Product < ApplicationRecord
 
   validates :name, :price, :description, presence: true
 
-  def self.ransackable_attributes(auth_object = nil)
+    def self.ransackable_attributes(auth_object = nil)
     ["id", "name", "description", "price", "category_id", "created_at", "updated_at"]
   end
 
   def self.ransackable_associations(auth_object = nil)
-    ["category"]
+    ["category", "image_attachment", "image_blob"]
   end
+
 end
