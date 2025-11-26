@@ -1,20 +1,43 @@
-# This file should ensure the existence of records required to run the application in every environment (production,
-# development, test). The code here should be idempotent so that it can be executed at any point in every environment.
-# The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
-#
-# Example:
-#
-#   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
-#     MovieGenre.find_or_create_by!(name: genre_name)
-#   end
-AdminUser.create!(email: 'admin@example.com', password: 'password', password_confirmation: 'password') if Rails.env.development?
+require "open-uri"
+require "faker"
 
-PageContent.find_or_create_by!(slug: "about") do |page|
-  page.title = "About Us"
-  page.content = "Write your About Us content here."
+puts "🧹 Cleaning database..."
+Product.destroy_all
+Category.destroy_all
+
+puts "📦 Creating categories..."
+categories = Category.create!([
+  { name: "Laptops" },
+  { name: "Monitors" },
+  { name: "Keyboards" },
+  { name: "Standing Desks" }
+])
+
+puts "🛒 Creating 100 products..."
+100.times do
+  category = categories.sample
+
+  product = Product.create!(
+    name: Faker::Commerce.product_name,
+    description: Faker::Lorem.paragraph(sentence_count: 4),
+    about: Faker::Lorem.paragraph(sentence_count: 6),
+    specifications: Faker::Lorem.paragraph(sentence_count: 8),
+    price: Faker::Commerce.price(range: 49..1999.0),
+    is_new: [true, false].sample,
+    is_on_sale: [true, false].sample
+  )
+
+  product.categories << category
+
+  # Attach random tech-like image
+  random_image_url = "https://picsum.photos/seed/#{rand(10000)}/800/800"
+  downloaded_file = URI.open(random_image_url)
+
+  product.images.attach(
+    io: downloaded_file,
+    filename: "seed_image_#{product.id}.jpg",
+    content_type: "image/jpg"
+  )
 end
 
-PageContent.find_or_create_by!(slug: "contact") do |page|
-  page.title = "Contact Us"
-  page.content = "Write your Contact information here."
-end
+puts "✅ Seeding finished!"

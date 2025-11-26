@@ -33,6 +33,7 @@ gem "image_processing", "~> 1.2"
 gem "aws-sdk-s3", require: false # for ActiveStorage S3 later
 gem "stripe"      # only when you get to checkout
 gem "sassc-rails"
+gem "faker"
 
 
 
