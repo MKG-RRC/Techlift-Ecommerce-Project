@@ -1,0 +1,11 @@
+<h1><%= @product.name %></h1>
+
+<% if @product.image.attached? %>
+  <%= image_tag @product.image.variant(resize_to_limit: [600, 600]) %>
+<% end %>
+
+<p class="mt-3"><%= @product.description %></p>
+
+<h3 class="text-success">Price: <%= number_to_currency @product.price %></h3>
+
+<%= link_to "Back to Products", products_path, class: "btn btn-secondary mt-3" %>
