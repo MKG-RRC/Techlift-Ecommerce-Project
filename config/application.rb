@@ -1,5 +1,6 @@
 require_relative "boot"
 
+# Load ALL Rails frameworks, including ActiveStorage
 require "rails/all"
 
 # Require the gems listed in Gemfile, including any gems

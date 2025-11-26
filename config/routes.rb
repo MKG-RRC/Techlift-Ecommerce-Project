@@ -1,17 +1,19 @@
 Rails.application.routes.draw do
-  get 'products/index'
-  get 'products/show'
+  # Front-end Storefront (products page)
+  resources :products, only: [:index, :show]
+
+  # Static CMS Pages
+  get "/about", to: "pages#about"
+  get "/contact", to: "pages#contact"
+
+  # Devise + Admin
   devise_for :users
   devise_for :admin_users, ActiveAdmin::Devise.config
   ActiveAdmin.routes(self)
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
+  # Health check
   get "up" => "rails/health#show", as: :rails_health_check
 
-  resources :products, only: [:index, :show]
-
-  # Defines the root path route ("/")
-  # root "posts#index"
+  # Root page
+  root to: "products#index"
 end

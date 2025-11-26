@@ -1,18 +1,36 @@
 ActiveAdmin.register Order do
 
-  # See permitted parameters documentation:
-  # https://github.com/activeadmin/activeadmin/blob/master/docs/2-resource-customization.md#setting-up-strong-parameters
-  #
-  # Uncomment all parameters which should be permitted for assignment
-  #
-  # permit_params :user_id, :status, :subtotal, :gst, :pst, :hst, :total
-  #
-  # or
-  #
-  # permit_params do
-  #   permitted = [:user_id, :status, :subtotal, :gst, :pst, :hst, :total]
-  #   permitted << :other if params[:action] == 'create' && current_user.admin?
-  #   permitted
-  # end
-  
+  # ---------------------------
+  # Strong Parameters
+  # ---------------------------
+  permit_params :user_id, :status, :subtotal, :gst, :pst, :hst, :total
+
+  # ---------------------------
+  # Index Page
+  # ---------------------------
+  index do
+    selectable_column
+    id_column
+    column :user
+    column :status
+    column :subtotal
+    column :gst
+    column :pst
+    column :hst
+    column :total
+    column :created_at
+    actions
+  end
+
+  # ---------------------------
+  # Filters
+  # ---------------------------
+  filter :user
+  filter :status
+  filter :subtotal
+  filter :gst
+  filter :pst
+  filter :hst
+  filter :total
+  filter :created_at
 end
