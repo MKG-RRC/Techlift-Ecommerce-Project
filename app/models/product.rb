@@ -1,15 +1,45 @@
 class Product < ApplicationRecord
-  belongs_to :category
-  has_one_attached :image
+  # ------------------------
+  # Associations
+  # ------------------------
+  has_many_attached :images
 
-  validates :name, :price, :description, presence: true
+  has_many :product_categories, dependent: :destroy
+  has_many :categories, through: :product_categories
 
-    def self.ransackable_attributes(auth_object = nil)
-    ["id", "name", "description", "price", "category_id", "created_at", "updated_at"]
+  # ------------------------
+  # Validations
+  # ------------------------
+  validates :name, :description, :price, :about, :specifications, presence: true
+
+
+  # ------------------------
+  # Ransack allowlists
+  # ------------------------
+  def self.ransackable_attributes(auth_object = nil)
+    [
+      "id",
+      "name",
+      "description",
+      "about",
+      "specifications",
+      "price",
+      "quantity",
+      "sku",
+      "is_new",
+      "is_on_sale",
+      "last_updated",
+      "created_at",
+      "updated_at"
+    ]
   end
 
   def self.ransackable_associations(auth_object = nil)
-    ["category", "image_attachment", "image_blob"]
+    [
+      "categories",
+      "product_categories",
+      "images_attachments",
+      "images_blobs"
+    ]
   end
-
 end

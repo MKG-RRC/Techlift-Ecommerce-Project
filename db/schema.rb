@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_11_26_053811) do
+ActiveRecord::Schema[7.1].define(version: 2025_11_26_064802) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -110,14 +110,37 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_26_053811) do
     t.index ["user_id"], name: "index_orders_on_user_id"
   end
 
+  create_table "page_contents", force: :cascade do |t|
+    t.string "title"
+    t.text "content"
+    t.string "slug"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["slug"], name: "index_page_contents_on_slug", unique: true
+  end
+
+  create_table "product_categories", force: :cascade do |t|
+    t.bigint "product_id", null: false
+    t.bigint "category_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["category_id"], name: "index_product_categories_on_category_id"
+    t.index ["product_id"], name: "index_product_categories_on_product_id"
+  end
+
   create_table "products", force: :cascade do |t|
     t.string "name"
     t.text "description"
     t.decimal "price"
-    t.bigint "category_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["category_id"], name: "index_products_on_category_id"
+    t.integer "quantity"
+    t.string "sku"
+    t.boolean "is_new"
+    t.boolean "is_on_sale"
+    t.datetime "last_updated"
+    t.text "about"
+    t.text "specifications"
   end
 
   create_table "provinces", force: :cascade do |t|
@@ -148,5 +171,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_26_053811) do
   add_foreign_key "order_items", "orders"
   add_foreign_key "order_items", "products"
   add_foreign_key "orders", "users"
-  add_foreign_key "products", "categories"
+  add_foreign_key "product_categories", "categories"
+  add_foreign_key "product_categories", "products"
 end
