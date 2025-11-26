@@ -1,0 +1,61 @@
+<div class="container my-4">
+
+  <h1 class="mb-4">Your Shopping Cart</h1>
+
+  <% if @cart_items.empty? %>
+    <div class="alert alert-info">Your cart is empty.</div>
+    <%= link_to "Browse Products", products_path, class: "btn btn-primary" %>
+  <% else %>
+
+    <table class="table table-bordered">
+      <thead class="thead-light">
+        <tr>
+          <th>Product</th>
+          <th width="120">Price</th>
+          <th width="150">Quantity</th>
+          <th width="120">Subtotal</th>
+          <th width="80"></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% @cart_items.each do |item| %>
+          <tr>
+            <td><%= item[:product].name %></td>
+            <td>$<%= number_with_precision(item[:product].price, precision: 2) %></td>
+
+            <td>
+              <%= form_with url: update_cart_path(item[:product]), method: :post, local: true do %>
+                <div class="input-group">
+                  <%= number_field_tag :quantity, item[:quantity], min: 1, class: "form-control" %>
+                  <div class="input-group-append">
+                    <%= submit_tag "Update", class: "btn btn-secondary" %>
+                  </div>
+                </div>
+              <% end %>
+            </td>
+
+            <td>$<%= number_with_precision(item[:subtotal], precision: 2) %></td>
+
+            <td>
+              <%= button_to "Remove",
+                    remove_cart_path(item[:product]),
+                    method: :post,
+                    class: "btn btn-danger btn-sm" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <div class="text-right">
+      <h3>Total: $<%= number_with_precision(@total, precision: 2) %></h3>
+    </div>
+
+    <div class="mt-4">
+      <%= link_to "Continue Shopping", products_path, class: "btn btn-outline-secondary" %>
+      <%= link_to "Checkout", checkout_path, class: "btn btn-primary" %>
+    </div>
+
+  <% end %>
+</div>

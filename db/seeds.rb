@@ -1,43 +1,138 @@
 require "open-uri"
 require "faker"
+require "httparty"
+require "csv"
 
 puts "🧹 Cleaning database..."
 Product.destroy_all
 Category.destroy_all
 
-puts "📦 Creating categories..."
+# --------------------------------------------------------
+# 1.6 BASIC CATEGORIES
+# --------------------------------------------------------
+puts "📦 Creating base categories..."
 categories = Category.create!([
-  { name: "Laptops" },
-  { name: "Monitors" },
-  { name: "Keyboards" },
-  { name: "Standing Desks" }
-])
+                                { name: "Laptops" },
+                                { name: "Monitors" },
+                                { name: "Keyboards" },
+                                { name: "Standing Desks" }
+                              ])
 
-puts "🛒 Creating 100 products..."
+# --------------------------------------------------------
+# 1.6 FAKER PRODUCTS (100 products)
+# --------------------------------------------------------
+puts "🛒 Creating 100 Faker products..."
 100.times do
   category = categories.sample
 
   product = Product.create!(
-    name: Faker::Commerce.product_name,
-    description: Faker::Lorem.paragraph(sentence_count: 4),
-    about: Faker::Lorem.paragraph(sentence_count: 6),
+    name:           Faker::Commerce.product_name,
+    description:    Faker::Lorem.paragraph(sentence_count: 4),
+    about:          Faker::Lorem.paragraph(sentence_count: 6),
     specifications: Faker::Lorem.paragraph(sentence_count: 8),
-    price: Faker::Commerce.price(range: 49..1999.0),
-    is_new: [true, false].sample,
-    is_on_sale: [true, false].sample
+    price:          Faker::Commerce.price(range: 49..1999.0),
+    is_new:         [true, false].sample,
+    is_on_sale:     [true, false].sample
   )
+
+  # If you're using has_many_attached :images
+  begin
+    downloaded_file = URI.open("https://picsum.photos/seed/#{rand(10_000)}/800/800")
+    product.images.attach(io: downloaded_file, filename: "faker_#{product.id}.jpg",
+                          content_type: "image/jpg")
+  rescue StandardError
+    puts "Image failed for Faker product ##{product.id}"
+  end
 
   product.categories << category
-
-  # Attach random tech-like image
-  random_image_url = "https://picsum.photos/seed/#{rand(10000)}/800/800"
-  downloaded_file = URI.open(random_image_url)
-
-  product.images.attach(
-    io: downloaded_file,
-    filename: "seed_image_#{product.id}.jpg",
-    content_type: "image/jpg"
-  )
 end
 
-puts "✅ Seeding finished!"
+puts "🔥 Faker products done!"
+
+# --------------------------------------------------------
+# 1.7 SCRAPED DATA (CSV IMPORT)
+# CSV file exported from Chrome Web Scraper
+# --------------------------------------------------------
+
+scraped_csv_path = Rails.root.join("db/data/scraped_products.csv")
+
+if File.exist?(scraped_csv_path)
+  puts "🗂 Importing scraped products..."
+
+  CSV.foreach(scraped_csv_path, headers: true) do |row|
+    category_name = row["category"] || "Misc"
+    category = Category.find_or_create_by!(name: category_name)
+
+    product = Product.create!(
+      name:           row["name"],
+      description:    row["description"],
+      price:          row["price"].to_f,
+      about:          row["about"] || "N/A",
+      specifications: row["specifications"] || "N/A",
+      is_new:         false,
+      is_on_sale:     false
+    )
+
+    product.categories << category
+  end
+
+  puts "✨ Scraped data import complete!"
+else
+  puts "⚠️ No scraped CSV found (db/data/scraped_products.csv)"
+end
+
+# --------------------------------------------------------
+# 1.8 API IMPORT (DummyJSON)
+# --------------------------------------------------------
+
+puts "🌐 Fetching API products from DummyJSON..."
+
+begin
+  response = HTTParty.get("https://dummyjson.com/products?limit=50")
+  api_products = response["products"]
+
+  api_products.each do |p|
+    category = Category.find_or_create_by!(name: p["category"].titleize)
+
+    product = Product.create!(
+      name:           p["title"],
+      description:    p["description"],
+      about:          "Imported from DummyJSON API.",
+      specifications: "N/A",
+      price:          p["price"],
+      is_new:         false,
+      is_on_sale:     false
+    )
+
+    Province.create!([
+                       { name: "Manitoba", gst: 0.05, pst: 0.07, hst: 0.0 },
+                       { name: "Ontario", gst: 0.0, pst: 0.0, hst: 0.13 },
+                       { name: "British Columbia", gst: 0.05, pst: 0.07, hst: 0.0 },
+                       { name: "Alberta", gst: 0.05, pst: 0.0, hst: 0.0 },
+                       { name: "Saskatchewan", gst: 0.05, pst: 0.06, hst: 0.0 }
+                     ])
+
+    begin
+      downloaded_image = URI.open(p["thumbnail"])
+      product.images.attach(
+        io:           downloaded_image,
+        filename:     "api_#{product.id}.jpg",
+        content_type: "image/jpg"
+      )
+    rescue StandardError
+      puts "API Image failed for: #{p['title']}"
+    end
+
+    product.categories << category
+  end
+
+  puts "🌍 API import complete!"
+rescue StandardError => e
+  puts "❌ API import failed: #{e.message}"
+end
+
+puts "🎉 ALL SEEDING DONE! (1.6 + 1.7 + 1.8 Completed)"
+if Rails.env.development?
+  AdminUser.create!(email: "admin@example.com", password: "password",
+                    password_confirmation: "password")
+end

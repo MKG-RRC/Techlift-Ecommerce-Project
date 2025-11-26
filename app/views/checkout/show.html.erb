@@ -1,0 +1,53 @@
+<div class="container my-5">
+  <h1 class="mb-4">Checkout</h1>
+
+  <div class="row">
+    <!-- Invoice -->
+    <div class="col-md-6">
+      <h3>Invoice</h3>
+      <ul class="list-group mb-3">
+        <% @products.each do |product| %>
+          <li class="list-group-item d-flex justify-content-between">
+            <span><%= product.name %> (x<%= session[:cart][product.id.to_s] %>)</span>
+            <span>$<%= (product.price * session[:cart][product.id.to_s]).round(2) %></span>
+          </li>
+        <% end %>
+      </ul>
+
+      <p>Subtotal: <strong>$<%= @subtotal.round(2) %></strong></p>
+      <p>GST: <strong>$<%= @taxes[:gst].round(2) %></strong></p>
+      <p>PST: <strong>$<%= @taxes[:pst].round(2) %></strong></p>
+      <p>HST: <strong>$<%= @taxes[:hst].round(2) %></strong></p>
+      <h4>Total: <strong>$<%= @total.round(2) %></strong></h4>
+    </div>
+
+    <!-- Address form -->
+    <div class="col-md-6">
+      <h3>Shipping Address</h3>
+
+      <%= form_with model: @address, url: checkout_path, method: :post, local: true do |f| %>
+        <div class="mb-3">
+          <%= f.label :street %>
+          <%= f.text_field :street, class: "form-control", required: true %>
+        </div>
+
+        <div class="mb-3">
+          <%= f.label :city %>
+          <%= f.text_field :city, class: "form-control", required: true %>
+        </div>
+
+        <div class="mb-3">
+          <%= f.label :postal_code %>
+          <%= f.text_field :postal_code, class: "form-control", required: true %>
+        </div>
+
+        <div class="mb-3">
+          <%= f.label :province_id, "Province" %>
+          <%= f.collection_select :province_id, Province.all, :id, :name, {}, { class: "form-select" } %>
+        </div>
+
+        <button class="btn btn-primary">Place Order</button>
+      <% end %>
+    </div>
+  </div>
+</div>

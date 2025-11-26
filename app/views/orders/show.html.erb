@@ -1,0 +1,20 @@
+<div class="container my-5">
+  <h1>Order #<%= @order.id %></h1>
+
+  <h3>Items</h3>
+  <ul class="list-group mb-3">
+    <% @order.order_items.each do |item| %>
+      <li class="list-group-item d-flex justify-content-between">
+        <span><%= item.product.name %> (x<%= item.quantity %>)</span>
+        <span>$<%= (item.price * item.quantity).round(2) %></span>
+      </li>
+    <% end %>
+  </ul>
+
+  <p>Subtotal: <strong>$<%= @order.subtotal %></strong></p>
+  <p>GST: <strong>$<%= @order.gst %></strong></p>
+  <p>PST: <strong>$<%= @order.pst %></strong></p>
+  <p>HST: <strong>$<%= @order.hst %></strong></p>
+
+  <h3>Total: <strong>$<%= @order.total %></strong></h3>
+</div>

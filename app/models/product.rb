@@ -12,7 +12,6 @@ class Product < ApplicationRecord
   # ------------------------
   validates :name, :description, :price, :about, :specifications, presence: true
 
-
   # ------------------------
   # Ransack allowlists
   # ------------------------

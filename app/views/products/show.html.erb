@@ -1,94 +1,28 @@
-<div class="container mt-4">
+<div class="container py-4">
 
-  <!-- Product Name -->
+  <% if @product.images.attached? %>
+    <%= image_tag @product.images.first, class: "img-fluid mb-4", style: "max-height:400px; object-fit:cover;" %>
+  <% end %>
+
   <h1><%= @product.name %></h1>
+  <p class="text-muted"><%= @product.categories.map(&:name).join(", ") %></p>
 
-  <!-- Badges -->
-  <div style="margin: 10px 0;">
-    <% if @product.is_new %>
-      <span style="background:green; color:white; padding:5px 10px; border-radius:5px; font-size:14px;">
-        NEW
-      </span>
-    <% end %>
+  <h3>$<%= number_with_precision(@product.price, precision: 2) %></h3>
 
-    <% if @product.is_on_sale %>
-      <span style="background:red; color:white; padding:5px 10px; border-radius:5px; font-size:14px;">
-        SALE
-      </span>
-    <% end %>
-  </div>
+  <hr>
 
-  <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 30px; margin-top: 20px;">
+  <h4>Description</h4>
+  <p><%= @product.description %></p>
 
-    <!-- Left Column — Image Gallery -->
-    <div>
-      <% if @product.images.attached? %>
+  <h4>About</h4>
+  <p><%= @product.about %></p>
 
-        <!-- Main large image -->
-        <%= image_tag @product.images.first,
-            id: "mainImage",
-            style: "width:100%; height:420px; object-fit:cover; border-radius:8px; margin-bottom:15px;" %>
+  <h4>Specifications</h4>
+  <p><%= @product.specifications %></p>
 
-        <!-- Thumbnails -->
-        <div style="display:flex; gap:10px;">
-          <% @product.images.each_with_index do |img, index| %>
-            <%= image_tag img,
-                style: "width:80px; height:80px; object-fit:cover; border-radius:5px; border:1px solid #ccc; cursor:pointer;",
-                onclick: "document.getElementById('mainImage').src=this.src" %>
-          <% end %>
-        </div>
+  <hr>
 
-      <% else %>
-        <div style="width:100%; height:420px; background:#eee; display:flex; align-items:center; justify-content:center;">
-          No Image
-        </div>
-      <% end %>
-    </div>
+  <%= button_to "Add to Cart", add_cart_path(@product), method: :post, class: "btn btn-primary" %>
 
-    <!-- Right Column — Pricing + Cart -->
-    <div>
-      <h2 style="color:#333;">$<%= @product.price %></h2>
-
-      <p style="color:#555; font-size:14px;">
-        Categories:
-        <%= @product.categories.map { |c| link_to c.name, products_path(category_id: c.id) }.join(", ").html_safe %>
-      </p>
-
-      <!-- Placeholder Cart Button -->
-      <button style="background:#ff9900; color:white; padding:12px 20px; border:none; border-radius:6px; font-size:16px; cursor:pointer;">
-        Add to Cart
-      </button>
-
-      <hr style="margin:20px 0;">
-
-      <!-- Short Description -->
-      <p style="font-size:16px; color:#444;">
-        <%= @product.description %>
-      </p>
-    </div>
-
-  </div>
-
-  <hr style="margin:40px 0;">
-
-  <!-- About Section -->
-  <h3>About This Product</h3>
-  <p style="white-space:pre-line; font-size:15px; color:#333;">
-    <%= @product.about %>
-  </p>
-
-  <hr style="margin:40px 0;">
-
-  <!-- Specifications -->
-  <h3>Specifications</h3>
-  <div style="background:#f9f9f9; padding:20px; border-radius:8px;">
-    <pre style="white-space:pre-wrap; font-size:14px;"><%= @product.specifications %></pre>
-  </div>
-
-  <hr style="margin:40px 0;">
-
-  <%= link_to "Back to Products", products_path,
-        style: "background:#007bff; color:white; padding:10px 16px;
-                border-radius:6px; text-decoration:none;" %>
-
+  <%= link_to "Back to Products", products_path, class: "btn btn-secondary mt-3" %>
 </div>
