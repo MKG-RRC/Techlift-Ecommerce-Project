@@ -12,10 +12,14 @@ Category.destroy_all
 # --------------------------------------------------------
 puts "📦 Creating base categories..."
 categories = Category.create!([
+                                { name: "Desktop Monitors" },
+                                { name: "PC Systems" },
+                                { name: "Mechanical Keyboards" },
+                                { name: "Computer Mice" },
+                                { name: "Docking Stations" },
                                 { name: "Laptops" },
-                                { name: "Monitors" },
-                                { name: "Keyboards" },
-                                { name: "Standing Desks" }
+                                { name: "Ergonomic Standing Desks" },
+                                { name: "Productivity Accessories and Cables" }
                               ])
 
 # --------------------------------------------------------

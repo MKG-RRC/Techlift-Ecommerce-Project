@@ -33,7 +33,8 @@
       </div>
 
       <h1 class="mb-2"><%= @product.name %></h1>
-      <h3 class="text-primary mb-3">$<%= number_with_precision(@product.price, precision: 2) %></h3>
+      <h3 class="text-primary mb-2">$<%= number_with_precision(@product.price, precision: 2) %></h3>
+      <p class="text-muted small mb-3">Added <%= @product.created_at.strftime("%b %d, %Y") %></p>
 
       <p class="text-secondary"><%= @product.description %></p>
 
