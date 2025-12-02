@@ -1,111 +1,82 @@
 class CheckoutController < ApplicationController
   before_action :authenticate_user!
-  before_action :clean_invalid_cart_items
 
   def show
     @cart = session[:cart] || {}
     @products = Product.where(id: @cart.keys)
-
     @subtotal = calculate_subtotal
     @taxes = calculate_taxes
     @total = @subtotal + @taxes.values.sum
-
     @address = current_user.address || Address.new
   end
 
-  def process_order
+  def create
     @cart = session[:cart] || {}
 
-    # Return error if cart is empty
     if @cart.empty?
-      return render json: { error: "Cart is empty" }, status: 400
+      redirect_to cart_path, alert: "Your cart is empty"
+      return
     end
 
-    # Save/update address
+    # Save address
     address = current_user.address || current_user.build_address
+    if address.update(address_params)
+      # Create Stripe session
+      begin
+        subtotal = calculate_subtotal
+        taxes = calculate_taxes
+        total_amount = ((subtotal + taxes.values.sum) * 100).round
 
-    address_data = {
-      street: params[:street],
-      city: params[:city],
-      postal_code: params[:postal_code],
-      province_id: params[:province_id]
-    }
-
-    unless address.update(address_data)
-      Rails.logger.error("Address update failed: #{address.errors.full_messages}")
-      return render json: { error: "Invalid address: #{address.errors.full_messages.join(', ')}" }, status: 400
-    end
-
-    # Calculate totals
-    subtotal = calculate_subtotal
-    taxes = calculate_taxes
-    total_amount = ((subtotal + taxes.values.sum) * 100).round  # Stripe uses cents
-
-    # Log for debugging
-    Rails.logger.info("Creating Stripe session: subtotal=#{subtotal}, taxes=#{taxes}, total=#{total_amount}")
-
-    begin
-      stripe_session = Stripe::Checkout::Session.create(
-        payment_method_types: ["card"],
-        mode: "payment",
-        line_items: [
-          {
+        stripe_session = Stripe::Checkout::Session.create(
+          payment_method_types: ["card"],
+          mode: "payment",
+          line_items: [{
             quantity: 1,
             price_data: {
               currency: "cad",
               unit_amount: total_amount,
-              product_data: {
-                name: "TechLift Store Order"
-              }
+              product_data: { name: "TechLift Store Order" }
             }
-          }
-        ],
-        success_url: "#{request.base_url}/order/success?session_id={CHECKOUT_SESSION_ID}",
-        cancel_url: "#{request.base_url}/checkout"
-      )
+          }],
+          success_url: order_success_url + "?session_id={CHECKOUT_SESSION_ID}",
+          cancel_url: checkout_url
+        )
 
-      render json: stripe_session
-    rescue Stripe::StripeError => e
-      Rails.logger.error("Stripe error: #{e.message}")
-      render json: { error: "Payment processing error: #{e.message}" }, status: 500
-    rescue => e
-      Rails.logger.error("Unexpected error: #{e.message}")
-      Rails.logger.error(e.backtrace.join("\n"))
-      render json: { error: "An unexpected error occurred: #{e.message}" }, status: 500
+        redirect_to stripe_session.url, allow_other_host: true
+      rescue Stripe::StripeError => e
+        redirect_to checkout_path, alert: "Payment error: #{e.message}"
+      end
+    else
+      redirect_to checkout_path, alert: "Please check your address"
+    end
+  end
+
+  def success
+    if params[:session_id].present?
+      redirect_to order_success_path(session_id: params[:session_id])
+    else
+      redirect_to root_path, alert: "Missing Stripe session ID"
     end
   end
 
   private
 
-  # 🧹 Automatically remove invalid product IDs
-  def clean_invalid_cart_items
-    cart = session[:cart] || {}
-    valid = cart.select { |id, _qty| Product.exists?(id) }
-    session[:cart] = valid
-  end
-
-  # 💰 Safe subtotal that won't crash
   def calculate_subtotal
-    @cart ||= session[:cart] || {}
-    @cart.sum do |id, qty|
+    cart = session[:cart] || {}
+    cart.sum do |id, qty|
       product = Product.find_by(id: id)
       product ? product.price * qty : 0
     end
   end
 
-  # 🧾 Safe tax calculation
   def calculate_taxes
-    # FIXED: Get province from address, not directly from user
-    address = current_user.address
-    province = address&.province
+    province = current_user.address&.province || current_user.province
     subtotal = calculate_subtotal
 
-    return { gst: 0, pst: 0, hst: 0 } unless province
+    calculate_taxes_for(province, subtotal)
+  end
 
-    {
-      gst: subtotal * (province.gst || 0),
-      pst: subtotal * (province.pst || 0),
-      hst: subtotal * (province.hst || 0)
-    }
+  def address_params
+    params.require(:address).permit(:street, :city, :postal_code, :province_id)
   end
 end

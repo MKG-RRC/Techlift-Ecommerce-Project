@@ -13,6 +13,12 @@ class Product < ApplicationRecord
   validates :name, :description, :price, :about, :specifications, presence: true
 
   # ------------------------
+  # Scopes
+  # ------------------------
+  scope :on_sale, -> { where(is_on_sale: true) }
+  scope :recently_added, -> { order(created_at: :desc) }
+
+  # ------------------------
   # Ransack allowlists
   # ------------------------
   def self.ransackable_attributes(auth_object = nil)

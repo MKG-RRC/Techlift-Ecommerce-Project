@@ -1,6 +1,22 @@
 <div class="container py-4">
 
-  <h1 class="mb-4">Products</h1>
+  <!-- Breadcrumbs -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb bg-white px-0 mb-0">
+      <li class="breadcrumb-item"><%= link_to "Home", root_path %></li>
+      <li class="breadcrumb-item active" aria-current="page">
+        Products
+        <% if params[:category_id].present? %>
+          <span class="text-muted">/ <%= @categories.find { |c| c.id.to_s == params[:category_id].to_s }&.name %></span>
+        <% end %>
+      </li>
+    </ol>
+  </nav>
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Products</h1>
+    <%= link_to "Back to Home", root_path, class: "btn btn-outline-secondary btn-sm" %>
+  </div>
 
   <!-- Search + Filter -->
   <div class="card p-3 mb-4 shadow-sm">
@@ -18,12 +34,19 @@
                 class: "form-control" %>
         </div>
 
-        <div class="col-md-2 mb-2">
-          <%= submit_tag "Filter", class: "btn btn-primary btn-block" %>
+        <div class="col-md-2 mb-2 d-flex">
+          <%= hidden_field_tag :filter, params[:filter] if params[:filter].present? %>
+          <%= submit_tag "Filter", class: "btn btn-primary btn-block w-100" %>
         </div>
 
       </div>
     <% end %>
+
+    <div class="d-flex flex-wrap mt-2">
+      <%= link_to "All", products_path(params.permit(:search, :category_id).merge(filter: nil)), class: "btn btn-sm mr-2 mb-2 #{params[:filter].blank? ? 'btn-primary' : 'btn-outline-primary'}" %>
+      <%= link_to "Sale items", products_path(params.permit(:search, :category_id).merge(filter: 'sale')), class: "btn btn-sm mr-2 mb-2 #{params[:filter] == 'sale' ? 'btn-primary' : 'btn-outline-primary'}" %>
+      <%= link_to "Recently added", products_path(params.permit(:search, :category_id).merge(filter: 'new')), class: "btn btn-sm mr-2 mb-2 #{params[:filter] == 'new' ? 'btn-primary' : 'btn-outline-primary'}" %>
+    </div>
   </div>
 
   <!-- Products Grid -->

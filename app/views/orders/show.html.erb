@@ -1,3 +1,5 @@
+<!-- FILE: app/views/orders/show.html.erb -->
+
 <div class="container py-5">
 
   <!-- HEADER -->
@@ -17,14 +19,14 @@
 
         <ul class="list-group list-group-flush">
           <% @order.order_items.each do |item| %>
+            <% line_price = item.price_at_purchase || item.price || 0 %>
             <li class="list-group-item d-flex justify-content-between align-items-center">
               <div>
-                <strong><%= item.product.name %></strong><br>
+                <strong><%= item.product_name %></strong><br>
                 <small class="text-muted">Qty: <%= item.quantity %></small>
               </div>
-
               <span class="font-weight-bold">
-                $<%= number_with_precision(item.price * item.quantity, precision: 2) %>
+                $<%= number_with_precision(line_price * item.quantity, precision: 2) %>
               </span>
             </li>
           <% end %>
@@ -40,6 +42,7 @@
         </div>
 
         <div class="card-body">
+
           <div class="d-flex justify-content-between mb-2">
             <span>Subtotal</span>
             <strong>$<%= number_with_precision(@order.subtotal, precision: 2) %></strong>
@@ -71,7 +74,7 @@
         </div>
       </div>
 
-      <!-- Button -->
+      <!-- Back to store -->
       <div class="mt-4">
         <%= link_to "Back to Store", products_path, class: "btn btn-outline-secondary btn-lg w-100" %>
       </div>

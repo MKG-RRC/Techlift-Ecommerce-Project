@@ -25,18 +25,20 @@ Rails.application.routes.draw do
   # --------------------------
   # Checkout
   # --------------------------
-  get  "/checkout", to: "checkout#show",         as: :checkout
-  post "/checkout", to: "checkout#process_order"
+  get  "/checkout", to: "checkout#show", as: :checkout
+  post "/checkout", to: "checkout#create"
+  get  "/checkout/success", to: "checkout#success", as: :checkout_success
 
   # --------------------------
   # CMS Pages
   # --------------------------
   get "/about",   to: "pages#about"
   get "/contact", to: "pages#contact"
+  get "/home",    to: "pages#home"
   get "/order/success", to: "orders#success"
 
   # --------------------------
   # Root
   # --------------------------
-  root "products#index"
+  root "pages#home"
 end

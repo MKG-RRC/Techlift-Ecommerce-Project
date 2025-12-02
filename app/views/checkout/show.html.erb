@@ -1,8 +1,9 @@
+<% provinces_data = Province.all.index_by(&:id).transform_values { |p| { gst: p.gst.to_f, pst: p.pst.to_f, hst: p.hst.to_f } } %>
+
 <div class="container py-5">
   <h2 class="mb-4 font-weight-bold">Checkout</h2>
 
   <div class="row">
-
     <!-- ORDER SUMMARY -->
     <div class="col-lg-5 mb-4">
       <div class="card shadow-sm border-0">
@@ -17,7 +18,6 @@
                 <strong><%= product.name %></strong><br>
                 <small class="text-muted">Qty: <%= @cart[product.id.to_s] %></small>
               </div>
-
               <span class="font-weight-bold">
                 $<%= number_with_precision(product.price, precision: 2) %>
               </span>
@@ -36,17 +36,15 @@
             <div class="mt-2 ml-2">
               <div class="d-flex justify-content-between">
                 <span>GST</span>
-                <span>$<%= number_with_precision(@taxes[:gst], precision: 2) %></span>
+                <span>$<span id="gst-amount"><%= number_with_precision(@taxes[:gst], precision: 2) %></span></span>
               </div>
-
               <div class="d-flex justify-content-between">
                 <span>PST</span>
-                <span>$<%= number_with_precision(@taxes[:pst], precision: 2) %></span>
+                <span>$<span id="pst-amount"><%= number_with_precision(@taxes[:pst], precision: 2) %></span></span>
               </div>
-
               <div class="d-flex justify-content-between">
                 <span>HST</span>
-                <span>$<%= number_with_precision(@taxes[:hst], precision: 2) %></span>
+                <span>$<span id="hst-amount"><%= number_with_precision(@taxes[:hst], precision: 2) %></span></span>
               </div>
             </div>
           </li>
@@ -54,13 +52,12 @@
           <li class="list-group-item d-flex justify-content-between bg-light">
             <h5 class="font-weight-bold">Total</h5>
             <h5 class="font-weight-bold text-primary">
-              $<%= number_with_precision(@total, precision: 2) %>
+              $<span id="total-amount"><%= number_with_precision(@total, precision: 2) %></span>
             </h5>
           </li>
         </ul>
       </div>
     </div>
-
 
     <!-- SHIPPING FORM -->
     <div class="col-lg-7">
@@ -70,118 +67,83 @@
         </div>
 
         <div class="card-body">
-
-          <!-- NO SUBMIT BUTTON HERE -->
-          <form id="shipping-form">
-
+          <%= form_with url: checkout_path, method: :post, local: true do |f| %>
             <div class="form-group">
               <label class="font-weight-semibold">Street</label>
-              <input type="text" name="address[street]" value="<%= @address.street %>"
-                     class="form-control form-control-lg" required>
+              <%= text_field_tag "address[street]", @address.street,
+                    class: "form-control form-control-lg", required: true %>
             </div>
 
             <div class="form-group">
               <label class="font-weight-semibold">City</label>
-              <input type="text" name="address[city]" value="<%= @address.city %>"
-                     class="form-control form-control-lg" required>
+              <%= text_field_tag "address[city]", @address.city,
+                    class: "form-control form-control-lg", required: true %>
             </div>
 
             <div class="form-group">
               <label class="font-weight-semibold">Postal Code</label>
-              <input type="text" name="address[postal_code]" value="<%= @address.postal_code %>"
-                     class="form-control form-control-lg" required>
+              <%= text_field_tag "address[postal_code]", @address.postal_code,
+                    class: "form-control form-control-lg", required: true %>
             </div>
 
             <div class="form-group">
               <label class="font-weight-semibold">Province</label>
-              <select name="address[province_id]" class="form-control form-control-lg" required>
-                <%= options_from_collection_for_select(Province.all, :id, :name, @address.province_id) %>
-              </select>
+              <%= select_tag "address[province_id]",
+                    options_from_collection_for_select(Province.all, :id, :name, @address.province_id),
+                    class: "form-control form-control-lg",
+                    id: "address_province_id",
+                    data: {
+                      provinces: provinces_data.to_json,
+                      subtotal: @subtotal.to_f
+                    },
+                    required: true %>
             </div>
 
-          </form>
-
+            <%= f.submit "Proceed to Payment", class: "btn btn-primary btn-lg w-100 mt-3" %>
+          <% end %>
         </div>
       </div>
     </div>
-
   </div>
-
-
-<!-- STRIPE JS -->
-<script src="https://js.stripe.com/v3/"></script>
-
-<button id="pay-button" class="btn btn-primary btn-lg w-100 mt-3">
-  Pay with Credit Card
-</button>
+</div>
 
 <script>
-document.addEventListener('turbo:load', function() {
-  console.log("Turbo loaded, attaching event listener");
+  (function() {
+    const select = document.getElementById("address_province_id");
+    if (!select) return;
 
-  const button = document.getElementById("pay-button");
-  console.log("Button found:", button);
+    const gstEl = document.getElementById("gst-amount");
+    const pstEl = document.getElementById("pst-amount");
+    const hstEl = document.getElementById("hst-amount");
+    const totalEl = document.getElementById("total-amount");
 
-  if (!button) {
-    console.log("Button not found, exiting");
-    return;
-  }
+    const subtotal = parseFloat(select.dataset.subtotal || "0");
+    let provinces = {};
 
-  // Remove any existing listeners to prevent duplicates
-  const newButton = button.cloneNode(true);
-  button.parentNode.replaceChild(newButton, button);
-
-  newButton.addEventListener("click", function () {
-    console.log("Button clicked!");
-
-    // Get form values
-    const street = document.querySelector("input[name='address[street]']").value;
-    const city = document.querySelector("input[name='address[city]']").value;
-    const postal_code = document.querySelector("input[name='address[postal_code]']").value;
-    const province_id = document.querySelector("select[name='address[province_id]']").value;
-
-    console.log("Form values:", { street, city, postal_code, province_id });
-
-    // Validate
-    if (!street || !city || !postal_code || !province_id) {
-      alert("Please fill in all address fields");
-      return;
+    try {
+      provinces = JSON.parse(select.dataset.provinces || "{}");
+    } catch (e) {
+      provinces = {};
     }
 
-    console.log("Sending to:", "<%= checkout_path(format: :json) %>");
+    const formatMoney = (value) => value.toFixed(2);
 
-    fetch("<%= checkout_path(format: :json) %>", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-Token": "<%= form_authenticity_token %>"
-      },
-      body: JSON.stringify({
-        street: street,
-        city: city,
-        postal_code: postal_code,
-        province_id: province_id
-      })
-    })
-    .then(res => {
-      console.log("Response status:", res.status);
-      if (!res.ok) {
-        return res.json().then(err => { throw new Error(err.error || 'Server error'); });
-      }
-      return res.json();
-    })
-    .then(session => {
-      console.log("Session:", session);
-      const stripe = Stripe("<%= Rails.application.credentials.dig(:stripe, :publishable_key) %>");
-      return stripe.redirectToCheckout({ sessionId: session.id });
-    })
-    .catch(error => {
-      console.error("Error:", error);
-      alert("Error: " + error.message);
-    });
-  });
-});
+    function updateTaxes() {
+      const province = provinces[select.value];
+      if (!province) return;
+
+      const gst = subtotal * (province.gst || 0);
+      const pst = subtotal * (province.pst || 0);
+      const hst = subtotal * (province.hst || 0);
+      const total = subtotal + gst + pst + hst;
+
+      if (gstEl) gstEl.textContent = formatMoney(gst);
+      if (pstEl) pstEl.textContent = formatMoney(pst);
+      if (hstEl) hstEl.textContent = formatMoney(hst);
+      if (totalEl) totalEl.textContent = formatMoney(total);
+    }
+
+    select.addEventListener("change", updateTaxes);
+    updateTaxes();
+  })();
 </script>
-
-
-</div>

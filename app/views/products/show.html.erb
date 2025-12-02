@@ -1,28 +1,60 @@
 <div class="container py-4">
+  <!-- Breadcrumbs -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb bg-white px-0 mb-0">
+      <li class="breadcrumb-item"><%= link_to "Home", root_path %></li>
+      <li class="breadcrumb-item"><%= link_to "Products", products_path %></li>
+      <li class="breadcrumb-item active" aria-current="page"><%= @product.name %></li>
+    </ol>
+  </nav>
 
-  <% if @product.images.attached? %>
-    <%= image_tag @product.images.first, class: "img-fluid mb-4", style: "max-height:400px; object-fit:cover;" %>
-  <% end %>
+  <div class="row">
+    <div class="col-lg-6 mb-4">
+      <% if @product.images.attached? %>
+        <div class="card border-0 shadow-sm">
+          <%= image_tag @product.images.first, class: "card-img-top", style: "max-height:440px; object-fit:cover;" %>
+        </div>
+      <% else %>
+        <div class="card border-0 shadow-sm d-flex justify-content-center align-items-center" style="height: 320px;">
+          <span class="text-muted">No image available</span>
+        </div>
+      <% end %>
+    </div>
 
-  <h1><%= @product.name %></h1>
-  <p class="text-muted"><%= @product.categories.map(&:name).join(", ") %></p>
+    <div class="col-lg-6">
+      <div class="d-flex align-items-center mb-2">
+        <% if @product.is_new %>
+          <span class="badge badge-success mr-2">New</span>
+        <% end %>
+        <% if @product.is_on_sale %>
+          <span class="badge badge-danger mr-2">Sale</span>
+        <% end %>
+        <span class="text-muted"><%= @product.categories.map(&:name).join(", ") %></span>
+      </div>
 
-  <h3>$<%= number_with_precision(@product.price, precision: 2) %></h3>
+      <h1 class="mb-2"><%= @product.name %></h1>
+      <h3 class="text-primary mb-3">$<%= number_with_precision(@product.price, precision: 2) %></h3>
 
-  <hr>
+      <p class="text-secondary"><%= @product.description %></p>
 
-  <h4>Description</h4>
-  <p><%= @product.description %></p>
+      <div class="d-flex flex-wrap align-items-center mb-4">
+        <%= button_to "Add to Cart", add_cart_path(@product), method: :post, class: "btn btn-primary mr-2 mb-2" %>
+        <%= link_to "Back to Products", products_path, class: "btn btn-outline-secondary mb-2" %>
+      </div>
 
-  <h4>About</h4>
-  <p><%= @product.about %></p>
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+          <h5 class="font-weight-bold mb-3">About</h5>
+          <p class="mb-0"><%= @product.about %></p>
+        </div>
+      </div>
 
-  <h4>Specifications</h4>
-  <p><%= @product.specifications %></p>
-
-  <hr>
-
-  <%= button_to "Add to Cart", add_cart_path(@product), method: :post, class: "btn btn-primary" %>
-
-  <%= link_to "Back to Products", products_path, class: "btn btn-secondary mt-3" %>
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h5 class="font-weight-bold mb-3">Specifications</h5>
+          <p class="mb-0"><%= @product.specifications %></p>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

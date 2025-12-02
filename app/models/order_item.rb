@@ -12,6 +12,8 @@ class OrderItem < ApplicationRecord
       "product_id",
       "quantity",
       "price_at_purchase",
+      "price",
+      "product_name",
       "created_at",
       "updated_at"
     ]

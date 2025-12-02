@@ -16,6 +16,14 @@ class ProductsController < ApplicationController
                            .where(categories: { id: params[:category_id] })
     end
 
+    # Special filters
+    case params[:filter]
+    when "sale"
+      @products = @products.on_sale
+    when "new"
+      @products = @products.recently_added
+    end
+
     # Pagination
     @products = @products.page(params[:page]).per(9)
   end

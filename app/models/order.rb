@@ -6,20 +6,6 @@ class Order < ApplicationRecord
   # ---------------------------
   # Ransack allowlists
   # ---------------------------
-  def self.ransackable_attributes(auth_object = nil)
-    [
-      "id",
-      "status",
-      "subtotal",
-      "gst",
-      "pst",
-      "total",
-      "created_at",
-      "updated_at",
-      "user_id"
-    ]
-  end
-
   def self.ransackable_associations(auth_object = nil)
     [
       "user",
@@ -36,6 +22,10 @@ class Order < ApplicationRecord
       "pst",
       "hst",
       "total",
+      "payment_status",
+      "stripe_payment_id",
+      "stripe_session_id",
+      "province_id",
       "created_at",
       "updated_at",
       "user_id"

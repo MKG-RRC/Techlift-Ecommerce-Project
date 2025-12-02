@@ -1,14 +1,57 @@
-<h1>My Orders</h1>
+<div class="container py-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="font-weight-bold mb-1">My Orders</h2>
+      <p class="text-muted mb-0">Track your purchases and view receipts.</p>
+    </div>
+    <%= link_to "Shop Products", products_path, class: "btn btn-primary" %>
+  </div>
 
-<% if current_user.orders.any? %>
-  <ul>
-    <% current_user.orders.each do |order| %>
-      <li>
-        <%= link_to "Order ##{order.id}", order_path(order) %>
-        – $<%= order.total %>
-      </li>
-    <% end %>
-  </ul>
-<% else %>
-  <p>You have no orders yet.</p>
-<% end %>
+  <% if @orders.any? %>
+    <div class="row">
+      <% @orders.each do |order| %>
+        <% item_count = order.order_items.size %>
+        <div class="col-md-6 col-lg-4 mb-4">
+          <div class="card shadow-sm border-0 h-100">
+            <div class="card-body d-flex flex-column">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0">Order #<%= order.id %></h5>
+                <% status = order.status.presence || order.payment_status || "paid" %>
+                <span class="badge badge-pill <%= status == "paid" ? "badge-success" : "badge-secondary" %>">
+                  <%= status.titleize %>
+                </span>
+              </div>
+
+              <p class="text-muted mb-3">
+                Placed on <%= order.created_at.strftime("%b %d, %Y") %>
+              </p>
+
+              <div class="mb-3">
+                <div class="d-flex justify-content-between">
+                  <span class="text-muted">Items</span>
+                  <strong><%= item_count %></strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                  <span class="text-muted">Total</span>
+                  <strong>$<%= number_with_precision(order.total, precision: 2) %></strong>
+                </div>
+              </div>
+
+              <div class="mt-auto d-flex justify-content-between align-items-center">
+                <%= link_to "View details", order_path(order), class: "btn btn-outline-primary btn-sm" %>
+                <small class="text-muted">GST: $<%= number_with_precision(order.gst, precision: 2) %></small>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="text-center py-5">
+      <i class="fa-solid fa-box-open fa-3x text-muted mb-3"></i>
+      <h4 class="mb-2">No orders yet</h4>
+      <p class="text-muted mb-4">Browse products and place your first order.</p>
+      <%= link_to "Start shopping", products_path, class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</div>
