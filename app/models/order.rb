@@ -1,6 +1,7 @@
 class Order < ApplicationRecord
   belongs_to :user
-  has_many :order_items
+  belongs_to :province
+  has_many :order_items, dependent: :destroy
 
   # ---------------------------
   # Ransack allowlists

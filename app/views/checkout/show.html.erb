@@ -1,53 +1,187 @@
-<div class="container my-5">
-  <h1 class="mb-4">Checkout</h1>
+<div class="container py-5">
+  <h2 class="mb-4 font-weight-bold">Checkout</h2>
 
   <div class="row">
-    <!-- Invoice -->
-    <div class="col-md-6">
-      <h3>Invoice</h3>
-      <ul class="list-group mb-3">
-        <% @products.each do |product| %>
+
+    <!-- ORDER SUMMARY -->
+    <div class="col-lg-5 mb-4">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0 font-weight-bold">Order Summary</h5>
+        </div>
+
+        <ul class="list-group list-group-flush">
+          <% @products.each do |product| %>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <strong><%= product.name %></strong><br>
+                <small class="text-muted">Qty: <%= @cart[product.id.to_s] %></small>
+              </div>
+
+              <span class="font-weight-bold">
+                $<%= number_with_precision(product.price, precision: 2) %>
+              </span>
+            </li>
+          <% end %>
+
           <li class="list-group-item d-flex justify-content-between">
-            <span><%= product.name %> (x<%= session[:cart][product.id.to_s] %>)</span>
-            <span>$<%= (product.price * session[:cart][product.id.to_s]).round(2) %></span>
+            <span class="font-weight-bold">Subtotal</span>
+            <span class="font-weight-bold">
+              $<%= number_with_precision(@subtotal, precision: 2) %>
+            </span>
           </li>
-        <% end %>
-      </ul>
 
-      <p>Subtotal: <strong>$<%= @subtotal.round(2) %></strong></p>
-      <p>GST: <strong>$<%= @taxes[:gst].round(2) %></strong></p>
-      <p>PST: <strong>$<%= @taxes[:pst].round(2) %></strong></p>
-      <p>HST: <strong>$<%= @taxes[:hst].round(2) %></strong></p>
-      <h4>Total: <strong>$<%= @total.round(2) %></strong></h4>
+          <li class="list-group-item">
+            <strong>Taxes</strong>
+            <div class="mt-2 ml-2">
+              <div class="d-flex justify-content-between">
+                <span>GST</span>
+                <span>$<%= number_with_precision(@taxes[:gst], precision: 2) %></span>
+              </div>
+
+              <div class="d-flex justify-content-between">
+                <span>PST</span>
+                <span>$<%= number_with_precision(@taxes[:pst], precision: 2) %></span>
+              </div>
+
+              <div class="d-flex justify-content-between">
+                <span>HST</span>
+                <span>$<%= number_with_precision(@taxes[:hst], precision: 2) %></span>
+              </div>
+            </div>
+          </li>
+
+          <li class="list-group-item d-flex justify-content-between bg-light">
+            <h5 class="font-weight-bold">Total</h5>
+            <h5 class="font-weight-bold text-primary">
+              $<%= number_with_precision(@total, precision: 2) %>
+            </h5>
+          </li>
+        </ul>
+      </div>
     </div>
 
-    <!-- Address form -->
-    <div class="col-md-6">
-      <h3>Shipping Address</h3>
 
-      <%= form_with model: @address, url: checkout_path, method: :post, local: true do |f| %>
-        <div class="mb-3">
-          <%= f.label :street %>
-          <%= f.text_field :street, class: "form-control", required: true %>
+    <!-- SHIPPING FORM -->
+    <div class="col-lg-7">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0 font-weight-bold">Shipping Address</h5>
         </div>
 
-        <div class="mb-3">
-          <%= f.label :city %>
-          <%= f.text_field :city, class: "form-control", required: true %>
-        </div>
+        <div class="card-body">
 
-        <div class="mb-3">
-          <%= f.label :postal_code %>
-          <%= f.text_field :postal_code, class: "form-control", required: true %>
-        </div>
+          <!-- NO SUBMIT BUTTON HERE -->
+          <form id="shipping-form">
 
-        <div class="mb-3">
-          <%= f.label :province_id, "Province" %>
-          <%= f.collection_select :province_id, Province.all, :id, :name, {}, { class: "form-select" } %>
-        </div>
+            <div class="form-group">
+              <label class="font-weight-semibold">Street</label>
+              <input type="text" name="address[street]" value="<%= @address.street %>"
+                     class="form-control form-control-lg" required>
+            </div>
 
-        <button class="btn btn-primary">Place Order</button>
-      <% end %>
+            <div class="form-group">
+              <label class="font-weight-semibold">City</label>
+              <input type="text" name="address[city]" value="<%= @address.city %>"
+                     class="form-control form-control-lg" required>
+            </div>
+
+            <div class="form-group">
+              <label class="font-weight-semibold">Postal Code</label>
+              <input type="text" name="address[postal_code]" value="<%= @address.postal_code %>"
+                     class="form-control form-control-lg" required>
+            </div>
+
+            <div class="form-group">
+              <label class="font-weight-semibold">Province</label>
+              <select name="address[province_id]" class="form-control form-control-lg" required>
+                <%= options_from_collection_for_select(Province.all, :id, :name, @address.province_id) %>
+              </select>
+            </div>
+
+          </form>
+
+        </div>
+      </div>
     </div>
+
   </div>
+
+
+<!-- STRIPE JS -->
+<script src="https://js.stripe.com/v3/"></script>
+
+<button id="pay-button" class="btn btn-primary btn-lg w-100 mt-3">
+  Pay with Credit Card
+</button>
+
+<script>
+document.addEventListener('turbo:load', function() {
+  console.log("Turbo loaded, attaching event listener");
+
+  const button = document.getElementById("pay-button");
+  console.log("Button found:", button);
+
+  if (!button) {
+    console.log("Button not found, exiting");
+    return;
+  }
+
+  // Remove any existing listeners to prevent duplicates
+  const newButton = button.cloneNode(true);
+  button.parentNode.replaceChild(newButton, button);
+
+  newButton.addEventListener("click", function () {
+    console.log("Button clicked!");
+
+    // Get form values
+    const street = document.querySelector("input[name='address[street]']").value;
+    const city = document.querySelector("input[name='address[city]']").value;
+    const postal_code = document.querySelector("input[name='address[postal_code]']").value;
+    const province_id = document.querySelector("select[name='address[province_id]']").value;
+
+    console.log("Form values:", { street, city, postal_code, province_id });
+
+    // Validate
+    if (!street || !city || !postal_code || !province_id) {
+      alert("Please fill in all address fields");
+      return;
+    }
+
+    console.log("Sending to:", "<%= checkout_path(format: :json) %>");
+
+    fetch("<%= checkout_path(format: :json) %>", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": "<%= form_authenticity_token %>"
+      },
+      body: JSON.stringify({
+        street: street,
+        city: city,
+        postal_code: postal_code,
+        province_id: province_id
+      })
+    })
+    .then(res => {
+      console.log("Response status:", res.status);
+      if (!res.ok) {
+        return res.json().then(err => { throw new Error(err.error || 'Server error'); });
+      }
+      return res.json();
+    })
+    .then(session => {
+      console.log("Session:", session);
+      const stripe = Stripe("<%= Rails.application.credentials.dig(:stripe, :publishable_key) %>");
+      return stripe.redirectToCheckout({ sessionId: session.id });
+    })
+    .catch(error => {
+      console.error("Error:", error);
+      alert("Error: " + error.message);
+    });
+  });
+});
+</script>
+
+
 </div>

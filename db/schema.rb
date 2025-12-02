@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_11_27_000101) do
+ActiveRecord::Schema[7.1].define(version: 2025_12_02_081114) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -98,6 +98,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_27_000101) do
     t.decimal "price_at_purchase"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "price", precision: 10, scale: 2, default: "0.0", null: false
     t.index ["order_id"], name: "index_order_items_on_order_id"
     t.index ["product_id"], name: "index_order_items_on_product_id"
   end
@@ -112,6 +113,10 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_27_000101) do
     t.decimal "total"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "province_id"
+    t.string "stripe_payment_id"
+    t.string "payment_status"
+    t.index ["province_id"], name: "index_orders_on_province_id"
     t.index ["user_id"], name: "index_orders_on_user_id"
   end
 
@@ -177,6 +182,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_11_27_000101) do
   add_foreign_key "addresses", "users"
   add_foreign_key "order_items", "orders"
   add_foreign_key "order_items", "products"
+  add_foreign_key "orders", "provinces"
   add_foreign_key "orders", "users"
   add_foreign_key "product_categories", "categories"
   add_foreign_key "product_categories", "products"

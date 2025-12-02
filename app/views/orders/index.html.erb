@@ -1,0 +1,14 @@
+<h1>My Orders</h1>
+
+<% if current_user.orders.any? %>
+  <ul>
+    <% current_user.orders.each do |order| %>
+      <li>
+        <%= link_to "Order ##{order.id}", order_path(order) %>
+        – $<%= order.total %>
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <p>You have no orders yet.</p>
+<% end %>

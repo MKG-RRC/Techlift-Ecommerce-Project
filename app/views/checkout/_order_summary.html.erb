@@ -1,0 +1,49 @@
+<div class="card shadow-sm border-0 mb-4">
+  <div class="card-header bg-white border-bottom">
+    <h5 class="mb-0 font-weight-bold">Order Summary</h5>
+  </div>
+
+  <ul class="list-group list-group-flush">
+    <% products.each do |product| %>
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <strong><%= product.name %></strong><br>
+          <small class="text-muted">Qty: <%= cart[product.id.to_s] %></small>
+        </div>
+        <span class="font-weight-bold">
+          $<%= number_with_precision(product.price, precision: 2) %>
+        </span>
+      </li>
+    <% end %>
+
+    <li class="list-group-item d-flex justify-content-between">
+      <span class="font-weight-bold">Subtotal</span>
+      <span class="font-weight-bold">$<%= number_with_precision(subtotal, precision: 2) %></span>
+    </li>
+
+    <li class="list-group-item">
+      <strong>Taxes</strong>
+      <div class="ml-2 mt-2">
+        <div class="d-flex justify-content-between">
+          <span>GST</span>
+          <span>$<%= number_with_precision(taxes[:gst], precision: 2) %></span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span>PST</span>
+          <span>$<%= number_with_precision(taxes[:pst], precision: 2) %></span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span>HST</span>
+          <span>$<%= number_with_precision(taxes[:hst], precision: 2) %></span>
+        </div>
+      </div>
+    </li>
+
+    <li class="list-group-item d-flex justify-content-between bg-light">
+      <h5 class="font-weight-bold">Total</h5>
+      <h5 class="font-weight-bold text-primary">
+        $<%= number_with_precision(total, precision: 2) %>
+      </h5>
+    </li>
+  </ul>
+</div>

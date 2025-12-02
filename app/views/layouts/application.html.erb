@@ -2,6 +2,8 @@
 <html>
   <head>
     <title>TechliftStore</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
     <meta name="viewport" content="width=device-width,initial-scale=1">
 
     <!-- Bootstrap 4 CSS -->
@@ -24,65 +26,97 @@
     <!-- =======================
          GLOBAL NAVBAR
     ======================== -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
-      <div class="container">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-3 sticky-top">
+  <div class="container">
 
-        <!-- Brand -->
-        <a class="navbar-brand font-weight-bold" href="/">
-          <span style="font-size: 1.3rem;">TechLift Store</span>
-        </a>
+    <!-- Brand -->
+    <%= link_to root_path, class: "navbar-brand font-weight-bold d-flex align-items-center" do %>
+      <i class="fa-solid fa-store mr-2"></i>
+      <span style="font-size: 1.4rem;">TechLift Store</span>
+    <% end %>
 
-        <!-- Mobile Toggle (Bootstrap 4) -->
-        <button class="navbar-toggler"
-                type="button"
-                data-toggle="collapse"
-                data-target="#mainNavbar"
-                aria-controls="mainNavbar"
-                aria-expanded="false"
-                aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
+    <!-- Mobile Toggle -->
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-        <!-- Links -->
-        <div class="collapse navbar-collapse" id="mainNavbar">
-          <ul class="navbar-nav ml-auto">
+    <!-- Navbar -->
+    <div class="collapse navbar-collapse" id="mainNavbar">
+      <ul class="navbar-nav ml-auto align-items-center">
 
-            <li class="nav-item">
-              <%= link_to "Home", root_path, class: "nav-link" %>
-            </li>
+        <li class="nav-item mx-2">
+          <%= link_to root_path, class: "nav-link d-flex align-items-center" do %>
+            <i class="fa-solid fa-house mr-1"></i> Home
+          <% end %>
+        </li>
 
-            <li class="nav-item">
-              <%= link_to "Products", products_path, class: "nav-link" %>
-            </li>
+        <li class="nav-item mx-2">
+          <%= link_to products_path, class: "nav-link d-flex align-items-center" do %>
+            <i class="fa-solid fa-box mr-1"></i> Products
+          <% end %>
+        </li>
 
-            <li class="nav-item">
-              <%= link_to "Categories", "#", class: "nav-link" %>
-            </li>
+        <li class="nav-item mx-2">
+          <%= link_to about_path, class: "nav-link d-flex align-items-center" do %>
+            <i class="fa-solid fa-circle-info mr-1"></i> About
+          <% end %>
+        </li>
 
-            <li class="nav-item">
-              <%= link_to "About", "#", class: "nav-link" %>
-            </li>
+        <li class="nav-item mx-2">
+          <%= link_to contact_path, class: "nav-link d-flex align-items-center" do %>
+            <i class="fa-solid fa-envelope mr-1"></i> Contact
+          <% end %>
+        </li>
 
-            <li class="nav-item">
-              <%= link_to "Contact", "#", class: "nav-link" %>
-            </li>
+        <!-- Auth -->
+        <% if user_signed_in? %>
+          <li class="nav-item mx-2 dropdown">
+            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="accountDropdown"
+               role="button" data-toggle="dropdown">
+              <i class="fa-solid fa-user mr-1"></i> <%= current_user.email.split('@').first %>
+            </a>
 
-            <!-- Cart Button -->
-          <% cart_count = session[:cart].present? ? session[:cart].values.sum : 0 %>
-
-          <li class="nav-item">
-            <%= link_to cart_path, class: "btn btn-primary ml-3" do %>
-              Cart <span class="badge badge-light"><%= cart_count %></span>
+            <div class="dropdown-menu dropdown-menu-right">
+              <%= link_to "My Account", edit_user_registration_path, class: "dropdown-item" %>
+              <%= link_to "Orders", orders_path, class: "dropdown-item" %>
+              <div class="dropdown-divider"></div>
+              <%= link_to "Logout", destroy_user_session_path,
+                           data: { turbo_method: :delete },
+                           class: "dropdown-item text-danger" %>
+            </div>
+          </li>
+        <% else %>
+          <li class="nav-item mx-2">
+            <%= link_to new_user_session_path, class: "nav-link d-flex align-items-center" do %>
+              <i class="fa-solid fa-right-to-bracket mr-1"></i> Login
             <% end %>
           </li>
 
+          <li class="nav-item mx-2">
+            <%= link_to new_user_registration_path, class: "btn btn-outline-primary btn-sm" do %>
+              <i class="fa-solid fa-user-plus mr-1"></i> Sign Up
+            <% end %>
+          </li>
+        <% end %>
+
+        <!-- Cart -->
+        <% cart_count = session[:cart].present? ? session[:cart].values.sum : 0 %>
+        <li class="nav-item ml-3">
+          <%= link_to cart_path, class: "btn btn-primary position-relative px-4 d-flex align-items-center" do %>
+            <i class="fa-solid fa-cart-shopping mr-1"></i> Cart
+            <span class="badge badge-light position-absolute"
+                  style="top:-6px; right:-6px;">
+              <%= cart_count %>
+            </span>
+          <% end %>
+        </li>
+
+      </ul>
+    </div>
+  </div>
+</nav>
 
 
-          </ul>
-        </div>
-
-      </div>
-    </nav>
 
     <!-- Yield page content -->
     <%= yield %>

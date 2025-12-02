@@ -30,7 +30,7 @@ ActiveAdmin.register Product do
                 :price, :quantity, :sku, :is_new, :is_on_sale, :last_updated,
                 category_ids: [], images: []
 
-  # Filters — avoid broken auto-filters
+  # Filters
   remove_filter :product_categories
   remove_filter :images_attachments
   remove_filter :images_blobs

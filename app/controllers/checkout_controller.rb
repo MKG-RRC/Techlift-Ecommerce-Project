@@ -16,44 +16,63 @@ class CheckoutController < ApplicationController
   def process_order
     @cart = session[:cart] || {}
 
+    # Return error if cart is empty
     if @cart.empty?
-      redirect_to cart_path, alert: "Your cart is empty."
-      return
+      return render json: { error: "Cart is empty" }, status: 400
     end
 
-    # Save or update address
+    # Save/update address
     address = current_user.address || current_user.build_address
-    address.update(address_params)
 
-    subtotal = calculate_subtotal
-    taxes    = calculate_taxes
+    address_data = {
+      street: params[:street],
+      city: params[:city],
+      postal_code: params[:postal_code],
+      province_id: params[:province_id]
+    }
 
-    # Create order
-    order = current_user.orders.create!(
-      subtotal:    subtotal,
-      gst:         taxes[:gst],
-      pst:         taxes[:pst],
-      hst:         taxes[:hst],
-      total:       subtotal + taxes.values.sum,
-      province_id: current_user.province_id
-    )
-
-    # Create order items
-    @cart.each do |product_id, quantity|
-      product = Product.find_by(id: product_id)
-      next unless product
-
-      order.order_items.create!(
-        product:  product,
-        quantity: quantity,
-        price:    product.price
-      )
+    unless address.update(address_data)
+      Rails.logger.error("Address update failed: #{address.errors.full_messages}")
+      return render json: { error: "Invalid address: #{address.errors.full_messages.join(', ')}" }, status: 400
     end
 
-    # Clear cart
-    session[:cart] = {}
+    # Calculate totals
+    subtotal = calculate_subtotal
+    taxes = calculate_taxes
+    total_amount = ((subtotal + taxes.values.sum) * 100).round  # Stripe uses cents
 
-    redirect_to order_path(order), notice: "Order placed successfully!"
+    # Log for debugging
+    Rails.logger.info("Creating Stripe session: subtotal=#{subtotal}, taxes=#{taxes}, total=#{total_amount}")
+
+    begin
+      stripe_session = Stripe::Checkout::Session.create(
+        payment_method_types: ["card"],
+        mode: "payment",
+        line_items: [
+          {
+            quantity: 1,
+            price_data: {
+              currency: "cad",
+              unit_amount: total_amount,
+              product_data: {
+                name: "TechLift Store Order"
+              }
+            }
+          }
+        ],
+        success_url: "#{request.base_url}/order/success?session_id={CHECKOUT_SESSION_ID}",
+        cancel_url: "#{request.base_url}/checkout"
+      )
+
+      render json: stripe_session
+    rescue Stripe::StripeError => e
+      Rails.logger.error("Stripe error: #{e.message}")
+      render json: { error: "Payment processing error: #{e.message}" }, status: 500
+    rescue => e
+      Rails.logger.error("Unexpected error: #{e.message}")
+      Rails.logger.error(e.backtrace.join("\n"))
+      render json: { error: "An unexpected error occurred: #{e.message}" }, status: 500
+    end
   end
 
   private
@@ -65,8 +84,9 @@ class CheckoutController < ApplicationController
     session[:cart] = valid
   end
 
-  # 💰 Safe subtotal that won’t crash
+  # 💰 Safe subtotal that won't crash
   def calculate_subtotal
+    @cart ||= session[:cart] || {}
     @cart.sum do |id, qty|
       product = Product.find_by(id: id)
       product ? product.price * qty : 0
@@ -75,19 +95,17 @@ class CheckoutController < ApplicationController
 
   # 🧾 Safe tax calculation
   def calculate_taxes
-    province = current_user.province
+    # FIXED: Get province from address, not directly from user
+    address = current_user.address
+    province = address&.province
     subtotal = calculate_subtotal
 
     return { gst: 0, pst: 0, hst: 0 } unless province
 
     {
-      gst: subtotal * province.gst,
-      pst: subtotal * province.pst,
-      hst: subtotal * province.hst
+      gst: subtotal * (province.gst || 0),
+      pst: subtotal * (province.pst || 0),
+      hst: subtotal * (province.hst || 0)
     }
-  end
-
-  def address_params
-    params.require(:address).permit(:street, :city, :postal_code, :province_id)
   end
 end
