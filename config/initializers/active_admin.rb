@@ -349,4 +349,39 @@ ActiveAdmin.setup do |config|
   # You can switch to using Webpacker here.
   #
   # config.use_webpacker = true
+
+  # == Footer with theme toggle
+  config.namespace :admin do |admin|
+    admin.footer = proc do
+      raw <<~HTML
+        <div class="aa-footer">
+          <span class="aa-footer__brand">TechLift Admin</span>
+          <button type="button" id="aa-theme-toggle" class="aa-theme-toggle">Light Mode</button>
+        </div>
+        <script>
+          (function() {
+            const key = "aa-theme";
+            const body = document.body;
+            const btn = document.getElementById("aa-theme-toggle");
+            if (!body || !btn) return;
+
+            function apply(theme) {
+              const isLight = theme === "light";
+              body.classList.toggle("light", isLight);
+              btn.textContent = isLight ? "Dark Mode" : "Light Mode";
+              localStorage.setItem(key, theme);
+            }
+
+            const saved = localStorage.getItem(key) || "dark";
+            apply(saved);
+
+            btn.addEventListener("click", function() {
+              const next = body.classList.contains("light") ? "dark" : "light";
+              apply(next);
+            });
+          })();
+        </script>
+      HTML
+    end
+  end
 end

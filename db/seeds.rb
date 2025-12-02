@@ -4,23 +4,52 @@ require "httparty"
 require "csv"
 
 puts "🧹 Cleaning database..."
+OrderItem.destroy_all
+Order.destroy_all
+ProductCategory.destroy_all
+Address.destroy_all
+User.destroy_all
+AdminUser.destroy_all
 Product.destroy_all
 Category.destroy_all
+Province.destroy_all
+
+# --------------------------------------------------------
+# Provinces
+# --------------------------------------------------------
+puts "🏷  Seeding provinces with tax rates..."
+[
+  { name: "Alberta", gst: 0.05, pst: 0.0, hst: 0.0 },
+  { name: "British Columbia", gst: 0.05, pst: 0.07, hst: 0.0 },
+  { name: "Manitoba", gst: 0.05, pst: 0.07, hst: 0.0 },
+  { name: "New Brunswick", gst: 0.0, pst: 0.0, hst: 0.15 },
+  { name: "Newfoundland and Labrador", gst: 0.0, pst: 0.0, hst: 0.15 },
+  { name: "Nova Scotia", gst: 0.0, pst: 0.0, hst: 0.15 },
+  { name: "Northwest Territories", gst: 0.05, pst: 0.0, hst: 0.0 },
+  { name: "Nunavut", gst: 0.05, pst: 0.0, hst: 0.0 },
+  { name: "Ontario", gst: 0.0, pst: 0.0, hst: 0.13 },
+  { name: "Prince Edward Island", gst: 0.0, pst: 0.0, hst: 0.15 },
+  { name: "Quebec", gst: 0.05, pst: 0.09975, hst: 0.0 },
+  { name: "Saskatchewan", gst: 0.05, pst: 0.06, hst: 0.0 },
+  { name: "Yukon", gst: 0.05, pst: 0.0, hst: 0.0 }
+].each do |attrs|
+  Province.create!(attrs)
+end
 
 # --------------------------------------------------------
 # 1.6 BASIC CATEGORIES
 # --------------------------------------------------------
 puts "📦 Creating base categories..."
 categories = Category.create!([
-                                { name: "Desktop Monitors" },
-                                { name: "PC Systems" },
-                                { name: "Mechanical Keyboards" },
-                                { name: "Computer Mice" },
-                                { name: "Docking Stations" },
-                                { name: "Laptops" },
-                                { name: "Ergonomic Standing Desks" },
-                                { name: "Productivity Accessories and Cables" }
-                              ])
+  { name: "Desktop Monitors" },
+  { name: "PC Systems" },
+  { name: "Mechanical Keyboards" },
+  { name: "Computer Mice" },
+  { name: "Docking Stations" },
+  { name: "Laptops" },
+  { name: "Ergonomic Standing Desks" },
+  { name: "Productivity Accessories and Cables" }
+])
 
 # --------------------------------------------------------
 # 1.6 FAKER PRODUCTS (100 products)
@@ -39,7 +68,6 @@ puts "🛒 Creating 100 Faker products..."
     is_on_sale:     [true, false].sample
   )
 
-  # If you're using has_many_attached :images
   begin
     downloaded_file = URI.open("https://picsum.photos/seed/#{rand(10_000)}/800/800")
     product.images.attach(io: downloaded_file, filename: "faker_#{product.id}.jpg",
@@ -55,9 +83,7 @@ puts "🔥 Faker products done!"
 
 # --------------------------------------------------------
 # 1.7 SCRAPED DATA (CSV IMPORT)
-# CSV file exported from Chrome Web Scraper
 # --------------------------------------------------------
-
 scraped_csv_path = Rails.root.join("db/data/scraped_products.csv")
 
 if File.exist?(scraped_csv_path)
@@ -88,7 +114,6 @@ end
 # --------------------------------------------------------
 # 1.8 API IMPORT (DummyJSON)
 # --------------------------------------------------------
-
 puts "🌐 Fetching API products from DummyJSON..."
 
 begin
@@ -107,14 +132,6 @@ begin
       is_new:         false,
       is_on_sale:     false
     )
-
-    Province.create!([
-                       { name: "Manitoba", gst: 0.05, pst: 0.07, hst: 0.0 },
-                       { name: "Ontario", gst: 0.0, pst: 0.0, hst: 0.13 },
-                       { name: "British Columbia", gst: 0.05, pst: 0.07, hst: 0.0 },
-                       { name: "Alberta", gst: 0.05, pst: 0.0, hst: 0.0 },
-                       { name: "Saskatchewan", gst: 0.05, pst: 0.06, hst: 0.0 }
-                     ])
 
     begin
       downloaded_image = URI.open(p["thumbnail"])
@@ -137,6 +154,8 @@ end
 
 puts "🎉 ALL SEEDING DONE! (1.6 + 1.7 + 1.8 Completed)"
 if Rails.env.development?
-  AdminUser.create!(email: "admin@example.com", password: "password",
-                    password_confirmation: "password")
+  AdminUser.find_or_create_by!(email: "admin@example.com") do |admin|
+    admin.password = "password"
+    admin.password_confirmation = "password"
+  end
 end
