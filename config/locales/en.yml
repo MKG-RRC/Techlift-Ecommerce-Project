@@ -29,3 +29,14 @@
 
 en:
   hello: "Hello world"
+  flash:
+    checkout:
+      cart_empty: "Your cart is empty"
+      address_missing: "Please check your address"
+      missing_session: "Missing Stripe session ID"
+    orders:
+      missing_session: "Missing Stripe session ID"
+      invalid_session: "Invalid Stripe session."
+      empty_cart: "Your cart was empty during checkout."
+      missing_province: "Select a province before completing checkout."
+      payment_success: "Payment successful!"

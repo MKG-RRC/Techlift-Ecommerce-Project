@@ -1,17 +1,19 @@
+# frozen_string_literal: true
+
 class CartController < ApplicationController
   before_action :initialize_cart
 
   def show
-    @cart_items = @cart.map do |product_id, qty|
+    @cart_items = @cart.filter_map do |product_id, qty|
       product = Product.find_by(id: product_id)
       next unless product
 
       {
-        product:  product,
+        product: product,
         quantity: qty,
         subtotal: qty * product.price
       }
-    end.compact
+    end
 
     @total = @cart_items.sum { |i| i[:subtotal] }
   end
@@ -21,7 +23,7 @@ class CartController < ApplicationController
     @cart[id] ||= 0
     @cart[id] += 1
     save_cart
-    redirect_back fallback_location: products_path
+    redirect_back_or_to(products_path)
   end
 
   def remove

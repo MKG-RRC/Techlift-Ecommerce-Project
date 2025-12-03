@@ -1,9 +1,11 @@
-require "ostruct"
+# frozen_string_literal: true
+
+PageFallback = Struct.new(:title, :content, keyword_init: true)
 
 class PagesController < ApplicationController
   def about
-    @page = find_page("about") || OpenStruct.new(
-      title: "About TechLift Store",
+    @page = find_page('about') || PageFallback.new(
+      title: 'About TechLift Store',
       content: <<~TEXT
         We are a Canadian tech retailer focused on bringing carefully curated hardware to builders, gamers, and creators.
         Every product is vetted by our in-house team, and we prioritize fast shipping within Canada.
@@ -12,8 +14,8 @@ class PagesController < ApplicationController
   end
 
   def contact
-    @page = find_page("contact") || OpenStruct.new(
-      title: "Contact Us",
+    @page = find_page('contact') || PageFallback.new(
+      title: 'Contact Us',
       content: <<~TEXT
         Have a question about an order or a product? Reach us by email or phone—we're here to help.
       TEXT

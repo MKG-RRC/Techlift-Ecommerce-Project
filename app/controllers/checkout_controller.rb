@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CheckoutController < ApplicationController
   before_action :authenticate_user!
 
@@ -14,7 +16,7 @@ class CheckoutController < ApplicationController
     @cart = session[:cart] || {}
 
     if @cart.empty?
-      redirect_to cart_path, alert: "Your cart is empty"
+      redirect_to cart_path, alert: t('flash.checkout.cart_empty')
       return
     end
 
@@ -28,17 +30,17 @@ class CheckoutController < ApplicationController
         total_amount = ((subtotal + taxes.values.sum) * 100).round
 
         stripe_session = Stripe::Checkout::Session.create(
-          payment_method_types: ["card"],
-          mode: "payment",
+          payment_method_types: ['card'],
+          mode: 'payment',
           line_items: [{
             quantity: 1,
             price_data: {
-              currency: "cad",
+              currency: 'cad',
               unit_amount: total_amount,
-              product_data: { name: "TechLift Store Order" }
+              product_data: { name: 'TechLift Store Order' }
             }
           }],
-          success_url: order_success_url + "?session_id={CHECKOUT_SESSION_ID}",
+          success_url: "#{order_success_url}?session_id={CHECKOUT_SESSION_ID}",
           cancel_url: checkout_url
         )
 
@@ -47,7 +49,7 @@ class CheckoutController < ApplicationController
         redirect_to checkout_path, alert: "Payment error: #{e.message}"
       end
     else
-      redirect_to checkout_path, alert: "Please check your address"
+      redirect_to checkout_path, alert: t('flash.checkout.address_missing')
     end
   end
 
@@ -55,7 +57,7 @@ class CheckoutController < ApplicationController
     if params[:session_id].present?
       redirect_to order_success_path(session_id: params[:session_id])
     else
-      redirect_to root_path, alert: "Missing Stripe session ID"
+      redirect_to root_path, alert: t('flash.checkout.missing_session')
     end
   end
 

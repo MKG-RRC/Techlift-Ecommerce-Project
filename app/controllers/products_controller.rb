@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ProductsController < ApplicationController
   def index
     @categories = Category.all
@@ -7,7 +9,7 @@ class ProductsController < ApplicationController
     # Search
     if params[:search].present?
       keyword = "%#{params[:search]}%"
-      @products = @products.where("name ILIKE ?", keyword)
+      @products = @products.where('name ILIKE ?', keyword)
     end
 
     # Category filter
@@ -18,9 +20,9 @@ class ProductsController < ApplicationController
 
     # Special filters
     case params[:filter]
-    when "sale"
+    when 'sale'
       @products = @products.on_sale
-    when "new"
+    when 'new'
       @products = @products.recently_added
     end
 

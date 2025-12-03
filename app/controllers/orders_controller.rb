@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # FILE: app/controllers/orders_controller.rb
 
 class OrdersController < ApplicationController
@@ -13,19 +15,19 @@ class OrdersController < ApplicationController
   def success
     session_id = params[:session_id]
 
-    return redirect_to root_path, alert: "Missing Stripe session ID" if session_id.blank?
+    return redirect_to root_path, alert: t('flash.orders.missing_session') if session_id.blank?
 
     stripe_session = retrieve_stripe_session(session_id)
-    return redirect_to root_path, alert: "Invalid Stripe session." unless stripe_session
+    return redirect_to root_path, alert: t('flash.orders.invalid_session') unless stripe_session
 
     cart = session[:cart] || {}
-    return redirect_to products_path, alert: "Your cart was empty during checkout." if cart.empty?
+    return redirect_to products_path, alert: t('flash.orders.empty_cart') if cart.empty?
 
     products = Product.where(id: cart.keys)
     subtotal = products.sum { |product| product.price * cart[product.id.to_s].to_i }
 
     province = current_user.province || current_user.address&.province
-    return redirect_to checkout_path, alert: "Select a province before completing checkout." if province.nil?
+    return redirect_to checkout_path, alert: t('flash.orders.missing_province') if province.nil?
 
     taxes = calculate_taxes_for(province, subtotal)
 
@@ -35,8 +37,8 @@ class OrdersController < ApplicationController
       pst: taxes[:pst],
       hst: taxes[:hst],
       total: subtotal + taxes.values.sum,
-      status: "paid",
-      payment_status: "paid",
+      status: 'paid',
+      payment_status: 'paid',
       stripe_payment_id: stripe_session.payment_intent,
       stripe_session_id: session_id,
       province: province
@@ -57,7 +59,7 @@ class OrdersController < ApplicationController
 
     session[:cart] = {}
 
-    redirect_to order_path(order), notice: "Payment successful!"
+    redirect_to order_path(order), notice: t('flash.orders.payment_success')
   end
 
   private
