@@ -11,7 +11,7 @@ class ProductsController < ApplicationController
     # Search
     if params[:search].present?
       keyword = "%#{params[:search]}%"
-      @products = @products.where('name ILIKE ?', keyword)
+      @products = @products.where('products.name ILIKE ? OR products.description ILIKE ?', keyword, keyword)
     end
 
     # Category filter
