@@ -37,7 +37,7 @@ class OrdersController < ApplicationController
       pst: taxes[:pst],
       hst: taxes[:hst],
       total: subtotal + taxes.values.sum,
-      status: 'paid',
+      status: Order.statuses[:paid],
       payment_status: 'paid',
       stripe_payment_id: stripe_session.payment_intent,
       stripe_session_id: session_id,

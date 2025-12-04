@@ -5,6 +5,16 @@ class Order < ApplicationRecord
   belongs_to :province
   has_many :order_items, dependent: :destroy
 
+  attribute :status, :string, default: 'new'
+
+  enum status: {
+    new: 'new',
+    paid: 'paid',
+    shipped: 'shipped'
+  }, _prefix: :status
+
+  validates :status, presence: true, inclusion: { in: statuses.keys }
+
   # ---------------------------
   # Ransack allowlists
   # ---------------------------

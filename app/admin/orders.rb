@@ -26,11 +26,32 @@ ActiveAdmin.register Order do
   # Filters
   # ---------------------------
   filter :user
-  filter :status
+  filter :status, as: :select, collection: -> { Order.statuses.keys }
   filter :subtotal
   filter :gst
   filter :pst
   filter :hst
   filter :total
   filter :created_at
+
+  # ---------------------------
+  # Form
+  # ---------------------------
+  form do |f|
+    f.semantic_errors
+
+    f.inputs do
+      f.input :user
+      f.input :status, as: :select,
+                       collection: Order.statuses.keys.map { |s| [s.titleize, s] },
+                       include_blank: false
+      f.input :subtotal
+      f.input :gst
+      f.input :pst
+      f.input :hst
+      f.input :total
+    end
+
+    f.actions
+  end
 end

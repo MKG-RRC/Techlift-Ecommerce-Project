@@ -16,8 +16,13 @@
             <div class="card-body d-flex flex-column">
               <div class="d-flex justify-content-between align-items-center mb-2">
                 <h5 class="mb-0">Order #<%= order.id %></h5>
-                <% status = order.status.presence || order.payment_status || "paid" %>
-                <span class="badge badge-pill <%= status == "paid" ? "badge-success" : "badge-secondary" %>">
+                <% status = order.status %>
+                <% badge_class = case status
+                                 when "paid" then "badge-success"
+                                 when "shipped" then "badge-info"
+                                 else "badge-secondary"
+                                 end %>
+                <span class="badge badge-pill <%= badge_class %>">
                   <%= status.titleize %>
                 </span>
               </div>

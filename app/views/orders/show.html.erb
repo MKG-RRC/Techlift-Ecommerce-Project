@@ -5,7 +5,17 @@
   <!-- HEADER -->
   <div class="mb-4">
     <h2 class="font-weight-bold">Order Confirmation</h2>
-    <p class="text-muted">Order #<%= @order.id %></p>
+    <div class="d-flex align-items-center">
+      <p class="text-muted mb-0">Order #<%= @order.id %></p>
+      <% badge_class = case @order.status
+                       when "paid" then "badge-success"
+                       when "shipped" then "badge-info"
+                       else "badge-secondary"
+                       end %>
+      <span class="badge badge-pill <%= badge_class %> ml-2">
+        <%= @order.status.titleize %>
+      </span>
+    </div>
   </div>
 
   <div class="row">
