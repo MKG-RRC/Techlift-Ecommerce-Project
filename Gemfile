@@ -29,7 +29,7 @@ gem 'stimulus-rails'
 gem 'jbuilder'
 
 gem 'activeadmin'
-gem 'aws-sdk-s3', require: false
+gem 'aws-sdk-s3', '~> 1.144', require: false
 gem 'devise'
 gem 'faker'
 gem 'httparty'

@@ -2,9 +2,11 @@
 
 class ProductsController < ApplicationController
   def index
-    @categories = Category.all
+    @categories = allowed_categories
 
-    @products = Product.all
+    @products = Product.joins(:categories)
+                       .where(categories: { name: allowed_category_names })
+                       .distinct
 
     # Search
     if params[:search].present?
@@ -14,8 +16,9 @@ class ProductsController < ApplicationController
 
     # Category filter
     if params[:category_id].present?
+      category = @categories.find_by(id: params[:category_id])
       @products = @products.joins(:categories)
-                           .where(categories: { id: params[:category_id] })
+                           .where(categories: { id: category.id }) if category
     end
 
     # Special filters
@@ -32,5 +35,28 @@ class ProductsController < ApplicationController
 
   def show
     @product = Product.find(params[:id])
+  end
+
+  private
+
+  def allowed_category_names
+    [
+      "Desktop Monitors",
+      "PC Systems",
+      "Mechanical Keyboards",
+      "Computer Mice",
+      "Docking Stations",
+      "Laptops",
+      "Ergonomic Standing Desks",
+      "Productivity Accessories and Cables",
+      "Monitors",
+      "Standing Desks",
+      "Keyboards",
+      "Mice"
+    ]
+  end
+
+  def allowed_categories
+    Category.where(name: allowed_category_names).order(:name)
   end
 end

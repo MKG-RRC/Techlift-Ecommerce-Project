@@ -11,7 +11,7 @@ class User < ApplicationRecord
 
   # Admin search filters
   def self.ransackable_attributes(_auth_object = nil)
-    %w[id email first_name last_name city postal_code
+    %w[id email first_name last_name phone_number city postal_code
        province_id created_at updated_at]
   end
 

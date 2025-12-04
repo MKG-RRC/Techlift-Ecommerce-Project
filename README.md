@@ -1,24 +1,29 @@
-# README
+# TechLift Store
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Containerized Rails app with Active Storage, Stripe checkout, and Admin panel.
 
-Things you may want to cover:
+## Run locally with Docker
 
-* Ruby version
+Prereqs: Docker + Docker Compose.
 
-* System dependencies
+1) Copy env template and set secrets:
+```bash
+cp .env.docker.example .env.docker
+# edit .env.docker to set SECRET_KEY_BASE, RAILS_MASTER_KEY (if using credentials), and AWS_* if you want S3
+```
 
-* Configuration
+2) Build and boot:
+```bash
+docker compose up --build
+```
+This starts PostgreSQL and the Rails app on http://localhost:3000.
 
-* Database creation
+3) Seed the database (includes categories/products with images):
+```bash
+docker compose run --rm web ./bin/rails db:prepare db:seed
+```
 
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+Notes:
+- To use S3 for Active Storage, set `ACTIVE_STORAGE_SERVICE=amazon` and AWS_* vars in `.env.docker`.
+- SSL redirects are disabled in Docker by default via `DISABLE_FORCE_SSL=true`.
+- App/log/tmp/storage are volume-mounted locally for easy inspection.

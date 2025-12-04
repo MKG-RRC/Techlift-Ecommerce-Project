@@ -98,6 +98,16 @@
 
 .dark-mode .breadcrumb {
   background-color: transparent;
+  color: #cbd5e1;
+}
+
+.dark-mode .breadcrumb-item,
+.dark-mode .breadcrumb-item a {
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .breadcrumb-item + .breadcrumb-item::before {
+  color: #94a3b8;
 }
 
 .dark-mode .list-group-item {
