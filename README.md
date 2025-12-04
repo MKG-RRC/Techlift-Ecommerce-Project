@@ -27,3 +27,10 @@ Notes:
 - To use S3 for Active Storage, set `ACTIVE_STORAGE_SERVICE=amazon` and AWS_* vars in `.env.docker`.
 - SSL redirects are disabled in Docker by default via `DISABLE_FORCE_SSL=true`.
 - App/log/tmp/storage are volume-mounted locally for easy inspection.
+
+## Cypress end-to-end tests
+Prereqs: Node 18+, Chrome/Electron.
+1) `npm install` (installs Cypress)
+2) Run headful: `npm run cy:open`
+   Run headless: `npm run cy:run`
+The suite covers auth happy-path signup and an unhappy-path invalid login. Ensure the Rails server is running at http://localhost:3000.

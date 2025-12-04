@@ -31,5 +31,12 @@
 
 /public/assets
 
+# Node / Cypress artifacts
+/node_modules
+/package-lock.json
+/yarn.lock
+/cypress/videos
+/cypress/screenshots
+
 # Ignore master key for decrypting credentials and more.
 /config/master.key
